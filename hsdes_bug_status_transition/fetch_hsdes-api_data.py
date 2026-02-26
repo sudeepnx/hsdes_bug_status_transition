@@ -174,6 +174,14 @@ def analyze_open_new_to_ack_triage_transitions_from_api_data(article_data_list):
         'P4': {'< 15 days': 0, '> 15 days': 0}
     }
     
+    # Track article details per bucket for summary sheet
+    article_details = {
+        'P1': {'< 2 days': [], '2 to 5 days': [], '> 5 days': []},
+        'P2': {'< 5 days': [], '6 to 7 days': [], '> 7 days': []},
+        'P3': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P4': {'< 15 days': [], '> 15 days': []}
+    }
+    
     # Process each article (from working script logic)
     for article_data in article_data_list:
         if not article_data or 'transitions' not in article_data:
@@ -262,32 +270,44 @@ def analyze_open_new_to_ack_triage_transitions_from_api_data(article_data_list):
         days = (end_date - start_date).days
         
         # Categorize into time buckets (fixed logic from working script)
+        article_info = {'id': article_id, 'title': article_data.get('title', '')}
         if priority == 'P1':
             if days < 2:
                 time_buckets['P1']['< 2 days'] += 1
+                article_details['P1']['< 2 days'].append(article_info)
             elif days >= 2 and days <= 5:
                 time_buckets['P1']['2 to 5 days'] += 1
+                article_details['P1']['2 to 5 days'].append(article_info)
             else:
                 time_buckets['P1']['> 5 days'] += 1
+                article_details['P1']['> 5 days'].append(article_info)
         elif priority == 'P2':
             if days < 5:
                 time_buckets['P2']['< 5 days'] += 1
+                article_details['P2']['< 5 days'].append(article_info)
             elif days >= 5 and days <= 7:  # Fixed: was >= 6, now >= 5 to remove gap
                 time_buckets['P2']['6 to 7 days'] += 1
+                article_details['P2']['6 to 7 days'].append(article_info)
             else:
                 time_buckets['P2']['> 7 days'] += 1
+                article_details['P2']['> 7 days'].append(article_info)
         elif priority == 'P3':
             if days < 10:
                 time_buckets['P3']['< 10 days'] += 1
+                article_details['P3']['< 10 days'].append(article_info)
             elif days >= 10 and days <= 15:
                 time_buckets['P3']['10 to 15 days'] += 1
+                article_details['P3']['10 to 15 days'].append(article_info)
             else:
                 time_buckets['P3']['> 15 days'] += 1
+                article_details['P3']['> 15 days'].append(article_info)
         elif priority == 'P4':
             if days < 15:
                 time_buckets['P4']['< 15 days'] += 1
+                article_details['P4']['< 15 days'].append(article_info)
             else:
                 time_buckets['P4']['> 15 days'] += 1
+                article_details['P4']['> 15 days'].append(article_info)
     
     # Print final results summary (from working script)
     print(f"Analysis complete!")
@@ -299,7 +319,7 @@ def analyze_open_new_to_ack_triage_transitions_from_api_data(article_data_list):
             print(f"  {priority}: {buckets} (total: {priority_total})")
     print(f"  Open.new to Open.acknowledged/Open.triage/Open.awaiting_submitter: {total_bugs} bugs analyzed")
     
-    return time_buckets
+    return (time_buckets, article_details)
 
 
 def parse_time_spent_to_hours(time_str):
@@ -370,6 +390,14 @@ def analyze_start_to_end_transitions_from_api_data(article_data_list):
         'P2': {'< 10 days': 0, '10 to 15 days': 0, '> 15 days': 0},
         'P3': {'< 10 days': 0, '10 to 15 days': 0, '> 15 days': 0},
         'P4': {'< 15 days': 0, '> 15 days': 0}
+    }
+    
+    # Track article details per bucket for summary sheet
+    article_details = {
+        'P1': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P2': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P3': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P4': {'< 15 days': [], '> 15 days': []}
     }
     
     # Define status groups - EXACT match for end statuses
@@ -499,18 +527,24 @@ def analyze_start_to_end_transitions_from_api_data(article_data_list):
             print(f"  COUNTED: Article {article_id} ({priority}) - {days:.1f} days [{duration_str}] -> {latest_end_status}")
         
         # Categorize into time buckets
+        article_info = {'id': article_id, 'title': article_data.get('title', '')}
         if priority in ['P1', 'P2', 'P3']:
             if days < 10:
                 time_buckets[priority]['< 10 days'] += 1
+                article_details[priority]['< 10 days'].append(article_info)
             elif days <= 15:
                 time_buckets[priority]['10 to 15 days'] += 1
+                article_details[priority]['10 to 15 days'].append(article_info)
             else:
                 time_buckets[priority]['> 15 days'] += 1
+                article_details[priority]['> 15 days'].append(article_info)
         elif priority == 'P4':
             if days < 15:
                 time_buckets[priority]['< 15 days'] += 1
+                article_details[priority]['< 15 days'].append(article_info)
             else:
                 time_buckets[priority]['> 15 days'] += 1
+                article_details[priority]['> 15 days'].append(article_info)
     
     # Print final results summary
     print(f"Start-to-end analysis complete!")
@@ -522,7 +556,7 @@ def analyze_start_to_end_transitions_from_api_data(article_data_list):
             print(f"  {priority}: {buckets} (total: {priority_total})")
     print(f"  Start-to-end transitions: {total_bugs} bugs analyzed")
     
-    return time_buckets
+    return (time_buckets, article_details)
 
 
 def analyze_awaiting_submitter_transitions_from_api_data(article_data_list):
@@ -542,6 +576,14 @@ def analyze_awaiting_submitter_transitions_from_api_data(article_data_list):
         'P2': {'< 5 days': 0, '6 to 7 days': 0, '> 7 days': 0},
         'P3': {'< 10 days': 0, '10 to 15 days': 0, '> 15 days': 0},
         'P4': {'< 15 days': 0, '> 15 days': 0}
+    }
+    
+    # Track article details per bucket for summary sheet
+    article_details = {
+        'P1': {'< 2 days': [], '2 to 5 days': [], '> 5 days': []},
+        'P2': {'< 5 days': [], '6 to 7 days': [], '> 7 days': []},
+        'P3': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P4': {'< 15 days': [], '> 15 days': []}
     }
     
     # Process each article
@@ -625,32 +667,44 @@ def analyze_awaiting_submitter_transitions_from_api_data(article_data_list):
         print(f"  COUNTED: Article {article_id} ({priority}) - {days} days (awaiting_submitter to next state)")
         
         # Categorize into time buckets (same as first analysis)
+        article_info = {'id': article_id, 'title': article_data.get('title', '')}
         if priority == 'P1':
             if days < 2:
                 time_buckets['P1']['< 2 days'] += 1
+                article_details['P1']['< 2 days'].append(article_info)
             elif days >= 2 and days <= 5:
                 time_buckets['P1']['2 to 5 days'] += 1
+                article_details['P1']['2 to 5 days'].append(article_info)
             else:
                 time_buckets['P1']['> 5 days'] += 1
+                article_details['P1']['> 5 days'].append(article_info)
         elif priority == 'P2':
             if days < 5:
                 time_buckets['P2']['< 5 days'] += 1
+                article_details['P2']['< 5 days'].append(article_info)
             elif days >= 5 and days <= 7:
                 time_buckets['P2']['6 to 7 days'] += 1
+                article_details['P2']['6 to 7 days'].append(article_info)
             else:
                 time_buckets['P2']['> 7 days'] += 1
+                article_details['P2']['> 7 days'].append(article_info)
         elif priority == 'P3':
             if days < 10:
                 time_buckets['P3']['< 10 days'] += 1
+                article_details['P3']['< 10 days'].append(article_info)
             elif days >= 10 and days <= 15:
                 time_buckets['P3']['10 to 15 days'] += 1
+                article_details['P3']['10 to 15 days'].append(article_info)
             else:
                 time_buckets['P3']['> 15 days'] += 1
+                article_details['P3']['> 15 days'].append(article_info)
         elif priority == 'P4':
             if days < 15:
                 time_buckets['P4']['< 15 days'] += 1
+                article_details['P4']['< 15 days'].append(article_info)
             else:
                 time_buckets['P4']['> 15 days'] += 1
+                article_details['P4']['> 15 days'].append(article_info)
     
     # Print final results summary
     print(f"Awaiting_submitter analysis complete!")
@@ -662,7 +716,7 @@ def analyze_awaiting_submitter_transitions_from_api_data(article_data_list):
             print(f"  {priority}: {buckets} (total: {priority_total})")
     print(f"  Open.awaiting_submitter to next state: {total_bugs} bugs analyzed")
     
-    return time_buckets
+    return (time_buckets, article_details)
 
 
 def analyze_promoted_to_implemented_transitions_from_api_data(article_data_list):
@@ -682,6 +736,14 @@ def analyze_promoted_to_implemented_transitions_from_api_data(article_data_list)
         'P2': {'< 10 days': 0, '10 to 15 days': 0, '> 15 days': 0},
         'P3': {'< 10 days': 0, '10 to 15 days': 0, '> 15 days': 0},
         'P4': {'< 15 days': 0, '> 15 days': 0}
+    }
+    
+    # Track article details per bucket for summary sheet
+    article_details = {
+        'P1': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P2': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P3': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P4': {'< 15 days': [], '> 15 days': []}
     }
     
     # Process each article
@@ -767,18 +829,24 @@ def analyze_promoted_to_implemented_transitions_from_api_data(article_data_list)
         print(f"  COUNTED: Article {article_id} ({priority}) - {days} days (promoted to {end_status_found})")
         
         # Categorize into time buckets (same as second analysis)
+        article_info = {'id': article_id, 'title': article_data.get('title', '')}
         if priority in ['P1', 'P2', 'P3']:
             if days < 10:
                 time_buckets[priority]['< 10 days'] += 1
+                article_details[priority]['< 10 days'].append(article_info)
             elif days <= 15:
                 time_buckets[priority]['10 to 15 days'] += 1
+                article_details[priority]['10 to 15 days'].append(article_info)
             else:
                 time_buckets[priority]['> 15 days'] += 1
+                article_details[priority]['> 15 days'].append(article_info)
         elif priority == 'P4':
             if days < 15:
                 time_buckets[priority]['< 15 days'] += 1
+                article_details[priority]['< 15 days'].append(article_info)
             else:
                 time_buckets[priority]['> 15 days'] += 1
+                article_details[priority]['> 15 days'].append(article_info)
     
     # Print final results summary
     print(f"Promoted to next state analysis complete!")
@@ -790,7 +858,7 @@ def analyze_promoted_to_implemented_transitions_from_api_data(article_data_list)
             print(f"  {priority}: {buckets} (total: {priority_total})")
     print(f"  Open.promoted to next state: {total_bugs} bugs analyzed")
     
-    return time_buckets
+    return (time_buckets, article_details)
 
 
 def analyze_await_user_verify_transitions_from_api_data(article_data_list):
@@ -810,6 +878,14 @@ def analyze_await_user_verify_transitions_from_api_data(article_data_list):
         'P2': {'< 7 days': 0, '7 to 10 days': 0, '> 10 days': 0},
         'P3': {'< 7 days': 0, '7 to 10 days': 0, '> 10 days': 0},
         'P4': {'< 10 days': 0, '> 10 days': 0}
+    }
+    
+    # Track article details per bucket for summary sheet
+    article_details = {
+        'P1': {'< 7 days': [], '7 to 10 days': [], '> 10 days': []},
+        'P2': {'< 7 days': [], '7 to 10 days': [], '> 10 days': []},
+        'P3': {'< 7 days': [], '7 to 10 days': [], '> 10 days': []},
+        'P4': {'< 10 days': [], '> 10 days': []}
     }
     
     # Define valid start and end statuses
@@ -902,18 +978,24 @@ def analyze_await_user_verify_transitions_from_api_data(article_data_list):
         print(f"  COUNTED: Article {article_id} ({priority}) - {days:.2f} days ({start_status_found} to {end_status_found})")
         
         # Categorize into time buckets (< 7, 7-10, > 10 days for P1/P2/P3, < 10, > 10 for P4)
+        article_info = {'id': article_id, 'title': article_data.get('title', '')}
         if priority in ['P1', 'P2', 'P3']:
             if days < 7:
                 time_buckets[priority]['< 7 days'] += 1
+                article_details[priority]['< 7 days'].append(article_info)
             elif days <= 10:
                 time_buckets[priority]['7 to 10 days'] += 1
+                article_details[priority]['7 to 10 days'].append(article_info)
             else:
                 time_buckets[priority]['> 10 days'] += 1
+                article_details[priority]['> 10 days'].append(article_info)
         elif priority == 'P4':
             if days < 10:
                 time_buckets['P4']['< 10 days'] += 1
+                article_details['P4']['< 10 days'].append(article_info)
             else:
                 time_buckets['P4']['> 10 days'] += 1
+                article_details['P4']['> 10 days'].append(article_info)
     
     # Print final results summary
     print(f"Implemented/await_user_verify to implemented/verified analysis complete!")
@@ -925,7 +1007,7 @@ def analyze_await_user_verify_transitions_from_api_data(article_data_list):
             print(f"  {priority}: {buckets} (total: {priority_total})")
     print(f"  Implemented/await_user_verify to implemented/verified: {total_bugs} bugs analyzed")
     
-    return time_buckets
+    return (time_buckets, article_details)
 
 
 def analyze_any_to_complete_product_changed_transitions_from_api_data(article_data_list):
@@ -945,6 +1027,14 @@ def analyze_any_to_complete_product_changed_transitions_from_api_data(article_da
         'P2': {'< 10 days': 0, '10 to 15 days': 0, '> 15 days': 0},
         'P3': {'< 10 days': 0, '10 to 15 days': 0, '> 15 days': 0},
         'P4': {'< 15 days': 0, '> 15 days': 0}
+    }
+    
+    # Track article details per bucket for summary sheet
+    article_details = {
+        'P1': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P2': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P3': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P4': {'< 15 days': [], '> 15 days': []}
     }
     
     # Process each article
@@ -1028,18 +1118,24 @@ def analyze_any_to_complete_product_changed_transitions_from_api_data(article_da
         print(f"  COUNTED: Article {article_id} ({priority}) - {days:.2f} days ({prev_status} to complete.product_changed)")
         
         # Categorize into time buckets (same as second analysis - 10/15 day buckets)
+        article_info = {'id': article_id, 'title': article_data.get('title', '')}
         if priority in ['P1', 'P2', 'P3']:
             if days < 10:
                 time_buckets[priority]['< 10 days'] += 1
+                article_details[priority]['< 10 days'].append(article_info)
             elif days <= 15:
                 time_buckets[priority]['10 to 15 days'] += 1
+                article_details[priority]['10 to 15 days'].append(article_info)
             else:
                 time_buckets[priority]['> 15 days'] += 1
+                article_details[priority]['> 15 days'].append(article_info)
         elif priority == 'P4':
             if days < 15:
                 time_buckets['P4']['< 15 days'] += 1
+                article_details['P4']['< 15 days'].append(article_info)
             else:
                 time_buckets['P4']['> 15 days'] += 1
+                article_details['P4']['> 15 days'].append(article_info)
     
     # Print final results summary
     print(f"Any state to complete.product_changed analysis complete!")
@@ -1051,7 +1147,7 @@ def analyze_any_to_complete_product_changed_transitions_from_api_data(article_da
             print(f"  {priority}: {buckets} (total: {priority_total})")
     print(f"  Any state to complete.product_changed: {total_bugs} bugs analyzed")
     
-    return time_buckets
+    return (time_buckets, article_details)
 
 
 def analyze_new_to_await_user_verify_transitions_from_api_data(article_data_list):
@@ -1071,6 +1167,14 @@ def analyze_new_to_await_user_verify_transitions_from_api_data(article_data_list
         'P2': {'< 5 days': 0, '6 to 7 days': 0, '> 7 days': 0},
         'P3': {'< 10 days': 0, '10 to 15 days': 0, '> 15 days': 0},
         'P4': {'< 15 days': 0, '> 15 days': 0}
+    }
+    
+    # Track article details per bucket for summary sheet
+    article_details = {
+        'P1': {'< 2 days': [], '2 to 5 days': [], '> 5 days': []},
+        'P2': {'< 5 days': [], '6 to 7 days': [], '> 7 days': []},
+        'P3': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P4': {'< 15 days': [], '> 15 days': []}
     }
     
     # Process each article
@@ -1155,32 +1259,44 @@ def analyze_new_to_await_user_verify_transitions_from_api_data(article_data_list
         print(f"  COUNTED: Article {article_id} ({priority}) - {days:.2f} days (new to await_user_verify)")
         
         # Categorize into time buckets (same as first analysis)
+        article_info = {'id': article_id, 'title': article_data.get('title', '')}
         if priority == 'P1':
             if days < 2:
                 time_buckets['P1']['< 2 days'] += 1
+                article_details['P1']['< 2 days'].append(article_info)
             elif days <= 5:
                 time_buckets['P1']['2 to 5 days'] += 1
+                article_details['P1']['2 to 5 days'].append(article_info)
             else:
                 time_buckets['P1']['> 5 days'] += 1
+                article_details['P1']['> 5 days'].append(article_info)
         elif priority == 'P2':
             if days < 5:
                 time_buckets['P2']['< 5 days'] += 1
+                article_details['P2']['< 5 days'].append(article_info)
             elif days <= 7:
                 time_buckets['P2']['6 to 7 days'] += 1
+                article_details['P2']['6 to 7 days'].append(article_info)
             else:
                 time_buckets['P2']['> 7 days'] += 1
+                article_details['P2']['> 7 days'].append(article_info)
         elif priority == 'P3':
             if days < 10:
                 time_buckets['P3']['< 10 days'] += 1
+                article_details['P3']['< 10 days'].append(article_info)
             elif days <= 15:
                 time_buckets['P3']['10 to 15 days'] += 1
+                article_details['P3']['10 to 15 days'].append(article_info)
             else:
                 time_buckets['P3']['> 15 days'] += 1
+                article_details['P3']['> 15 days'].append(article_info)
         elif priority == 'P4':
             if days < 15:
                 time_buckets['P4']['< 15 days'] += 1
+                article_details['P4']['< 15 days'].append(article_info)
             else:
                 time_buckets['P4']['> 15 days'] += 1
+                article_details['P4']['> 15 days'].append(article_info)
     
     # Print final results summary
     print(f"Open.new to await_user_verify analysis complete!")
@@ -1192,7 +1308,7 @@ def analyze_new_to_await_user_verify_transitions_from_api_data(article_data_list
             print(f"  {priority}: {buckets} (total: {priority_total})")
     print(f"  Open.new to implemented.await_user_verify: {total_bugs} bugs analyzed")
     
-    return time_buckets
+    return (time_buckets, article_details)
 
 
 def analyze_any_to_await_user_verify_transitions_from_api_data(article_data_list):
@@ -1212,6 +1328,14 @@ def analyze_any_to_await_user_verify_transitions_from_api_data(article_data_list
         'P2': {'< 10 days': 0, '10 to 15 days': 0, '> 15 days': 0},
         'P3': {'< 10 days': 0, '10 to 15 days': 0, '> 15 days': 0},
         'P4': {'< 15 days': 0, '> 15 days': 0}
+    }
+    
+    # Track article details per bucket for summary sheet
+    article_details = {
+        'P1': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P2': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P3': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
+        'P4': {'< 15 days': [], '> 15 days': []}
     }
     
     # Process each article
@@ -1300,18 +1424,24 @@ def analyze_any_to_await_user_verify_transitions_from_api_data(article_data_list
         print(f"  COUNTED: Article {article_id} ({priority}) - {days:.2f} days ({prev_status} to await_user_verify)")
         
         # Categorize into time buckets (same as second analysis - 10/15 day buckets)
+        article_info = {'id': article_id, 'title': article_data.get('title', '')}
         if priority in ['P1', 'P2', 'P3']:
             if days < 10:
                 time_buckets[priority]['< 10 days'] += 1
+                article_details[priority]['< 10 days'].append(article_info)
             elif days <= 15:
                 time_buckets[priority]['10 to 15 days'] += 1
+                article_details[priority]['10 to 15 days'].append(article_info)
             else:
                 time_buckets[priority]['> 15 days'] += 1
+                article_details[priority]['> 15 days'].append(article_info)
         elif priority == 'P4':
             if days < 15:
                 time_buckets['P4']['< 15 days'] += 1
+                article_details['P4']['< 15 days'].append(article_info)
             else:
                 time_buckets['P4']['> 15 days'] += 1
+                article_details['P4']['> 15 days'].append(article_info)
     
     # Print final results summary
     print(f"Any state (not new) to await_user_verify analysis complete!")
@@ -1323,7 +1453,7 @@ def analyze_any_to_await_user_verify_transitions_from_api_data(article_data_list
             print(f"  {priority}: {buckets} (total: {priority_total})")
     print(f"  Any state (not open.new) to implemented.await_user_verify: {total_bugs} bugs analyzed")
     
-    return time_buckets
+    return (time_buckets, article_details)
 
 
 def parse_date(date_str):
@@ -1377,28 +1507,40 @@ def create_wcl_bugs_transition_graph_sheet(excel_file_path, article_data_list, p
         
         # Run all three analyses
         print("Running first analysis: open.new to acknowledged/triage...")
-        first_analysis = analyze_open_new_to_ack_triage_transitions_from_api_data(article_data_list)
+        first_analysis, first_articles = analyze_open_new_to_ack_triage_transitions_from_api_data(article_data_list)
         
         print("\\nRunning second analysis: start statuses to implemented...")
-        second_analysis = analyze_start_to_end_transitions_from_api_data(article_data_list)
+        second_analysis, second_articles = analyze_start_to_end_transitions_from_api_data(article_data_list)
         
         print("\\nRunning third analysis: awaiting_submitter to next state...")
-        third_analysis = analyze_awaiting_submitter_transitions_from_api_data(article_data_list)
+        third_analysis, third_articles = analyze_awaiting_submitter_transitions_from_api_data(article_data_list)
         
         print("\\nRunning fourth analysis: promoted to implemented/awaiting_3rd_party...")
-        fourth_analysis = analyze_promoted_to_implemented_transitions_from_api_data(article_data_list)
+        fourth_analysis, fourth_articles = analyze_promoted_to_implemented_transitions_from_api_data(article_data_list)
         
         print("\\nRunning fifth analysis: open.new to await_user_verify...")
-        fifth_analysis = analyze_new_to_await_user_verify_transitions_from_api_data(article_data_list)
+        fifth_analysis, fifth_articles = analyze_new_to_await_user_verify_transitions_from_api_data(article_data_list)
         
         print("\\nRunning sixth analysis: any state (not new) to await_user_verify...")
-        sixth_analysis = analyze_any_to_await_user_verify_transitions_from_api_data(article_data_list)
+        sixth_analysis, sixth_articles = analyze_any_to_await_user_verify_transitions_from_api_data(article_data_list)
         
         print("\\nRunning seventh analysis: await_user_verify to implemented/verified/complete.product_changed...")
-        seventh_analysis = analyze_await_user_verify_transitions_from_api_data(article_data_list)
+        seventh_analysis, seventh_articles = analyze_await_user_verify_transitions_from_api_data(article_data_list)
         
         print("\\nRunning eighth analysis: any state to complete.product_changed...")
-        eighth_analysis = analyze_any_to_complete_product_changed_transitions_from_api_data(article_data_list)
+        eighth_analysis, eighth_articles = analyze_any_to_complete_product_changed_transitions_from_api_data(article_data_list)
+        
+        # Store all article details for summary sheet
+        all_article_details = {
+            'first': first_articles,
+            'second': second_articles,
+            'third': third_articles,
+            'fourth': fourth_articles,
+            'fifth': fifth_articles,
+            'sixth': sixth_articles,
+            'seventh': seventh_articles,
+            'eighth': eighth_articles
+        }
         
         if not first_analysis and not second_analysis and not third_analysis and not fourth_analysis and not fifth_analysis and not sixth_analysis and not seventh_analysis and not eighth_analysis:
             print("ERROR: Failed to analyze transitions")
@@ -1777,11 +1919,11 @@ def create_wcl_bugs_transition_graph_sheet(excel_file_path, article_data_list, p
                     print(f"    {bucket}: {count} bugs")
         print("="*80)
         
-        return True
+        return all_article_details
         
     except Exception as e:
         print(f"ERROR creating transition graph sheet: {e}")
-        return False
+        return None
 
 
 def create_status_summary_sheet(excel_file_path, article_data_list, platform_name="WCL"):
@@ -1965,6 +2107,318 @@ def create_status_summary_sheet(excel_file_path, article_data_list, platform_nam
         
     except Exception as e:
         print(f"ERROR creating status summary sheet: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
+def create_state_transition_summary_sheet(excel_file_path, all_article_details, platform_name="WCL"):
+    """Create a state transition summary sheet with vertical table layout
+    
+    Args:
+        excel_file_path (str): Path to the existing Excel file to add the sheet to
+        all_article_details (dict): Article details per bucket from all 8 analyses
+            Keys: 'first'..'eighth', each containing {priority: {bucket: [{'id':..,'title':..}]}}
+        platform_name (str): Platform name for sheet title
+    """
+    try:
+        from openpyxl import load_workbook
+        from openpyxl.styles import Alignment, Font, Border, Side, PatternFill
+        from openpyxl.utils import get_column_letter
+        
+        # Define analyses configuration
+        analyses_config = [
+            {
+                'key': 'first',
+                'name': 'Open.new to Open.acknowledged/Open.triage/Open.awaiting_submitter',
+                'team': 'Wipro',
+                'buckets': {
+                    'P1': ['< 2 days', '2 to 5 days', '> 5 days'],
+                    'P2': ['< 5 days', '6 to 7 days', '> 7 days'],
+                    'P3': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P4': ['< 15 days', '> 15 days']
+                }
+            },
+            {
+                'key': 'second',
+                'name': 'Open.new/Open.acknowledged/Open.triage to Open.debug/Open.promoted/Open.root_caused/Implemented',
+                'team': 'SI',
+                'buckets': {
+                    'P1': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P2': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P3': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P4': ['< 15 days', '> 15 days']
+                }
+            },
+            {
+                'key': 'third',
+                'name': 'Open.awaiting_submitter to Next State',
+                'team': 'SV',
+                'buckets': {
+                    'P1': ['< 2 days', '2 to 5 days', '> 5 days'],
+                    'P2': ['< 5 days', '6 to 7 days', '> 7 days'],
+                    'P3': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P4': ['< 15 days', '> 15 days']
+                }
+            },
+            {
+                'key': 'fourth',
+                'name': 'Open.promoted to Next State',
+                'team': 'COE',
+                'buckets': {
+                    'P1': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P2': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P3': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P4': ['< 15 days', '> 15 days']
+                }
+            },
+            {
+                'key': 'fifth',
+                'name': 'Open.new to Implemented.await_user_verify',
+                'team': 'SI',
+                'buckets': {
+                    'P1': ['< 2 days', '2 to 5 days', '> 5 days'],
+                    'P2': ['< 5 days', '6 to 7 days', '> 7 days'],
+                    'P3': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P4': ['< 15 days', '> 15 days']
+                }
+            },
+            {
+                'key': 'sixth',
+                'name': 'Any State (otherthan Open.new) to Implemented.await_user_verify',
+                'team': 'SI',
+                'buckets': {
+                    'P1': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P2': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P3': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P4': ['< 15 days', '> 15 days']
+                }
+            },
+            {
+                'key': 'seventh',
+                'name': 'Implemented/Implemented.await_user_verify to Implemented/Verified',
+                'team': 'SV',
+                'buckets': {
+                    'P1': ['< 7 days', '7 to 10 days', '> 10 days'],
+                    'P2': ['< 7 days', '7 to 10 days', '> 10 days'],
+                    'P3': ['< 7 days', '7 to 10 days', '> 10 days'],
+                    'P4': ['< 10 days', '> 10 days']
+                }
+            },
+            {
+                'key': 'eighth',
+                'name': 'Any State to Complete.product_changed',
+                'team': 'SysDebug',
+                'buckets': {
+                    'P1': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P2': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P3': ['< 10 days', '10 to 15 days', '> 15 days'],
+                    'P4': ['< 15 days', '> 15 days']
+                }
+            }
+        ]
+        
+        risk_levels = ['Low', 'Med', 'High']
+        
+        # Load existing workbook
+        wb = load_workbook(excel_file_path)
+        
+        # Create sheet name
+        sheet_name = f'{platform_name}_state_transition_summary'
+        if sheet_name in wb.sheetnames:
+            del wb[sheet_name]
+        ws = wb.create_sheet(sheet_name)
+        
+        # Define styling
+        header_font = Font(bold=True, size=11, color='FFFFFF')
+        header_fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+        title_font = Font(bold=True, size=11)
+        border = Border(
+            left=Side(style='thin'), right=Side(style='thin'),
+            top=Side(style='thin'), bottom=Side(style='thin')
+        )
+        center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        wrap_alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+        
+        # Alternating row fills for transitions
+        light_fill = PatternFill(start_color='D9E2F3', end_color='D9E2F3', fill_type='solid')
+        white_fill = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
+        
+        # Column layout: A=State transition, B=Team, C=Priority, D=Low/Med/High, E=SLA, F=HSD count, G=Bug list, H=Bug titles
+        headers = ['State transition', 'Team', 'Priority', 'Low/Med/High', 'SLA', 'HSD count', 'Bug list', 'Bug titles']
+        
+        # Write header row
+        for col_idx, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+            cell.alignment = center_alignment
+        
+        current_row = 2
+        
+        for analysis_idx, config in enumerate(analyses_config):
+            key = config['key']
+            transition_name = config['name']
+            team = config['team']
+            buckets_def = config['buckets']
+            article_data = all_article_details.get(key, {})
+            
+            # Alternating background
+            row_fill = light_fill if analysis_idx % 2 == 0 else white_fill
+            
+            # Starting row for this transition block
+            block_start_row = current_row
+            
+            for priority_idx, priority in enumerate(['P1', 'P2', 'P3', 'P4']):
+                priority_buckets = buckets_def.get(priority, [])
+                priority_articles = article_data.get(priority, {})
+                
+                priority_start_row = current_row
+                
+                for level_idx, level in enumerate(risk_levels):
+                    # Get bucket name and articles for this level
+                    if level_idx < len(priority_buckets):
+                        bucket_name = priority_buckets[level_idx]
+                        articles = priority_articles.get(bucket_name, [])
+                        count = len(articles)
+                        sla_value = bucket_name
+                    else:
+                        # P4 has only 2 buckets, High row is empty
+                        bucket_name = ''
+                        articles = []
+                        count = ''
+                        sla_value = ''
+                    
+                    # Each bucket takes max(1, len(articles)) rows
+                    num_rows = max(1, len(articles))
+                    bucket_start_row = current_row
+                    
+                    for art_idx in range(num_rows):
+                        row = current_row
+                        
+                        # Column G: Bug list (article ID with HYPERLINK)
+                        if art_idx < len(articles):
+                            art_id = articles[art_idx]['id']
+                            hyperlink_formula = f'=HYPERLINK("https://hsdes.intel.com/resource/{art_id}", "{art_id}")'
+                            bug_cell = ws.cell(row=row, column=7, value=hyperlink_formula)
+                        else:
+                            bug_cell = ws.cell(row=row, column=7, value='')
+                        bug_cell.border = border
+                        bug_cell.alignment = wrap_alignment
+                        bug_cell.fill = row_fill
+                        
+                        # Column H: Bug title (plain text, no hyperlink)
+                        if art_idx < len(articles):
+                            title_text = str(articles[art_idx].get('title', ''))
+                            title_cell = ws.cell(row=row, column=8, value=title_text)
+                        else:
+                            title_cell = ws.cell(row=row, column=8, value='')
+                        title_cell.border = border
+                        title_cell.alignment = wrap_alignment
+                        title_cell.fill = row_fill
+                        
+                        current_row += 1
+                    
+                    bucket_end_row = current_row - 1
+                    
+                    # Column D: Low/Med/High - merged across bucket rows
+                    level_cell = ws.cell(row=bucket_start_row, column=4, value=level)
+                    level_cell.font = title_font
+                    level_cell.border = border
+                    level_cell.alignment = center_alignment
+                    level_cell.fill = row_fill
+                    if bucket_start_row < bucket_end_row:
+                        ws.merge_cells(start_row=bucket_start_row, start_column=4,
+                                      end_row=bucket_end_row, end_column=4)
+                    for r in range(bucket_start_row, bucket_end_row + 1):
+                        ws.cell(row=r, column=4).border = border
+                        ws.cell(row=r, column=4).fill = row_fill
+                    
+                    # Column E: SLA - merged across bucket rows
+                    sla_cell = ws.cell(row=bucket_start_row, column=5, value=sla_value)
+                    sla_cell.border = border
+                    sla_cell.alignment = center_alignment
+                    sla_cell.fill = row_fill
+                    if bucket_start_row < bucket_end_row:
+                        ws.merge_cells(start_row=bucket_start_row, start_column=5,
+                                      end_row=bucket_end_row, end_column=5)
+                    for r in range(bucket_start_row, bucket_end_row + 1):
+                        ws.cell(row=r, column=5).border = border
+                        ws.cell(row=r, column=5).fill = row_fill
+                    
+                    # Column F: HSD count - merged across bucket rows
+                    count_cell = ws.cell(row=bucket_start_row, column=6, value=count)
+                    count_cell.border = border
+                    count_cell.alignment = center_alignment
+                    count_cell.fill = row_fill
+                    if bucket_start_row < bucket_end_row:
+                        ws.merge_cells(start_row=bucket_start_row, start_column=6,
+                                      end_row=bucket_end_row, end_column=6)
+                    for r in range(bucket_start_row, bucket_end_row + 1):
+                        ws.cell(row=r, column=6).border = border
+                        ws.cell(row=r, column=6).fill = row_fill
+                
+                # Merge Priority column across all rows for this priority
+                priority_end_row = current_row - 1
+                priority_cell = ws.cell(row=priority_start_row, column=3, value=priority)
+                priority_cell.font = title_font
+                priority_cell.border = border
+                priority_cell.alignment = center_alignment
+                priority_cell.fill = row_fill
+                if priority_start_row < priority_end_row:
+                    ws.merge_cells(start_row=priority_start_row, start_column=3,
+                                  end_row=priority_end_row, end_column=3)
+                for r in range(priority_start_row, priority_end_row + 1):
+                    ws.cell(row=r, column=3).border = border
+                    ws.cell(row=r, column=3).fill = row_fill
+            
+            # Merge State transition column across all rows for this transition
+            block_end_row = current_row - 1
+            transition_cell = ws.cell(row=block_start_row, column=1, value=transition_name)
+            transition_cell.font = title_font
+            transition_cell.border = border
+            transition_cell.alignment = center_alignment
+            transition_cell.fill = row_fill
+            if block_start_row < block_end_row:
+                ws.merge_cells(start_row=block_start_row, start_column=1,
+                              end_row=block_end_row, end_column=1)
+            for r in range(block_start_row, block_end_row + 1):
+                ws.cell(row=r, column=1).border = border
+                ws.cell(row=r, column=1).fill = row_fill
+            
+            # Merge Team column across all rows for this transition
+            team_cell = ws.cell(row=block_start_row, column=2, value=team)
+            team_cell.font = title_font
+            team_cell.border = border
+            team_cell.alignment = center_alignment
+            team_cell.fill = row_fill
+            if block_start_row < block_end_row:
+                ws.merge_cells(start_row=block_start_row, start_column=2,
+                              end_row=block_end_row, end_column=2)
+            for r in range(block_start_row, block_end_row + 1):
+                ws.cell(row=r, column=2).border = border
+                ws.cell(row=r, column=2).fill = row_fill
+        
+        # Adjust column widths
+        ws.column_dimensions['A'].width = 45  # State transition
+        ws.column_dimensions['B'].width = 12  # Team
+        ws.column_dimensions['C'].width = 10  # Priority
+        ws.column_dimensions['D'].width = 14  # Low/Med/High
+        ws.column_dimensions['E'].width = 16  # SLA
+        ws.column_dimensions['F'].width = 12  # HSD count
+        ws.column_dimensions['G'].width = 25  # Bug list
+        ws.column_dimensions['H'].width = 50  # Bug titles
+        
+        # Save the workbook
+        wb.save(excel_file_path)
+        wb.close()
+        
+        print(f"\nSUCCESS: {sheet_name} sheet created successfully!")
+        return True
+        
+    except Exception as e:
+        print(f"ERROR creating state transition summary sheet: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -2190,6 +2644,7 @@ def create_excel(article_ids, output_filename='hsdes_export.xlsx'):
         # Store article data for transition analysis (like the working script)
         article_analysis_data = {
             'id': article_data.get('id', ''),
+            'title': article_data.get('title', ''),
             'priority': article_data.get('priority', ''),
             'status': current_status,  # Add current status
             'transitions': get_status_transitions(article_id)  # Get original order transitions
@@ -2410,6 +2865,14 @@ def main():
         success = create_wcl_bugs_transition_graph_sheet(output_filename, article_data_list, platform_name)
         if success:
             print(f"\nSUCCESS: Transition analysis completed! Check the '{platform_name}_Bugs_transition_graph' sheet in '{output_filename}'")
+            
+            # Create state transition summary sheet using article details from the analysis
+            print("\nCreating state transition summary sheet...")
+            success3 = create_state_transition_summary_sheet(output_filename, success, platform_name)
+            if success3:
+                print(f"SUCCESS: State transition summary completed! Check the '{platform_name}_state_transition_summary' sheet in '{output_filename}'")
+            else:
+                print("ERROR: Failed to create state transition summary sheet")
         else:
             print("\nERROR: Failed to create transition analysis")
         
