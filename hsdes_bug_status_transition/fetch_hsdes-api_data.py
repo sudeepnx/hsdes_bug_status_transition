@@ -78,16 +78,16 @@ def categorize_time_by_priority(hours, priority):
     days = hours / 24
     
     if priority == 'P1':
-        if days < 2:
-            return '< 2 days'
-        elif days <= 5:
-            return '2 to 5 days'
+        if days < 4:
+            return '< 4 days'
+        elif days <= 6:
+            return '4 to 6 days'
         else:
-            return '> 5 days'
+            return '> 6 days'
     
     elif priority == 'P2':
-        if days < 5:
-            return '< 5 days'
+        if days < 6:
+            return '< 6 days'
         elif days <= 7:
             return '6 to 7 days'
         else:
@@ -168,16 +168,16 @@ def analyze_open_new_to_ack_triage_transitions_from_api_data(article_data_list):
     
     # Initialize time buckets (from working script)
     time_buckets = {
-        'P1': {'< 2 days': 0, '2 to 5 days': 0, '> 5 days': 0},
-        'P2': {'< 5 days': 0, '6 to 7 days': 0, '> 7 days': 0},
+        'P1': {'< 4 days': 0, '4 to 6 days': 0, '> 6 days': 0},
+        'P2': {'< 6 days': 0, '6 to 7 days': 0, '> 7 days': 0},
         'P3': {'< 10 days': 0, '10 to 15 days': 0, '> 15 days': 0},
         'P4': {'< 15 days': 0, '> 15 days': 0}
     }
     
     # Track article details per bucket for summary sheet
     article_details = {
-        'P1': {'< 2 days': [], '2 to 5 days': [], '> 5 days': []},
-        'P2': {'< 5 days': [], '6 to 7 days': [], '> 7 days': []},
+        'P1': {'< 4 days': [], '4 to 6 days': [], '> 6 days': []},
+        'P2': {'< 6 days': [], '6 to 7 days': [], '> 7 days': []},
         'P3': {'< 10 days': [], '10 to 15 days': [], '> 15 days': []},
         'P4': {'< 15 days': [], '> 15 days': []}
     }
@@ -272,20 +272,20 @@ def analyze_open_new_to_ack_triage_transitions_from_api_data(article_data_list):
         # Categorize into time buckets (fixed logic from working script)
         article_info = {'id': article_id, 'title': article_data.get('title', '')}
         if priority == 'P1':
-            if days < 2:
-                time_buckets['P1']['< 2 days'] += 1
-                article_details['P1']['< 2 days'].append(article_info)
-            elif days >= 2 and days <= 5:
-                time_buckets['P1']['2 to 5 days'] += 1
-                article_details['P1']['2 to 5 days'].append(article_info)
+            if days < 4:
+                time_buckets['P1']['< 4 days'] += 1
+                article_details['P1']['< 4 days'].append(article_info)
+            elif days >= 4 and days <= 6:
+                time_buckets['P1']['4 to 6 days'] += 1
+                article_details['P1']['4 to 6 days'].append(article_info)
             else:
-                time_buckets['P1']['> 5 days'] += 1
-                article_details['P1']['> 5 days'].append(article_info)
+                time_buckets['P1']['> 6 days'] += 1
+                article_details['P1']['> 6 days'].append(article_info)
         elif priority == 'P2':
-            if days < 5:
-                time_buckets['P2']['< 5 days'] += 1
-                article_details['P2']['< 5 days'].append(article_info)
-            elif days >= 5 and days <= 7:  # Fixed: was >= 6, now >= 5 to remove gap
+            if days < 6:
+                time_buckets['P2']['< 6 days'] += 1
+                article_details['P2']['< 6 days'].append(article_info)
+            elif days >= 6 and days <= 7:
                 time_buckets['P2']['6 to 7 days'] += 1
                 article_details['P2']['6 to 7 days'].append(article_info)
             else:
@@ -1610,8 +1610,8 @@ def create_wcl_bugs_transition_graph_sheet(excel_file_path, article_data_list, p
         
         # Define time buckets for each analysis
         first_buckets = {
-            'P1': ['< 2 days', '2 to 5 days', '> 5 days'],
-            'P2': ['< 5 days', '6 to 7 days', '> 7 days'],
+            'P1': ['< 4 days', '4 to 6 days', '> 6 days'],
+            'P2': ['< 6 days', '6 to 7 days', '> 7 days'],
             'P3': ['< 10 days', '10 to 15 days', '> 15 days'],
             'P4': ['< 15 days', '> 15 days']
         }
@@ -2133,8 +2133,8 @@ def create_state_transition_summary_sheet(excel_file_path, all_article_details, 
                 'name': 'Open.new to Open.acknowledged/Open.triage/Open.awaiting_submitter',
                 'team': 'Wipro',
                 'buckets': {
-                    'P1': ['< 2 days', '2 to 5 days', '> 5 days'],
-                    'P2': ['< 5 days', '6 to 7 days', '> 7 days'],
+                    'P1': ['< 4 days', '4 to 6 days', '> 6 days'],
+                    'P2': ['< 6 days', '6 to 7 days', '> 7 days'],
                     'P3': ['< 10 days', '10 to 15 days', '> 15 days'],
                     'P4': ['< 15 days', '> 15 days']
                 }
