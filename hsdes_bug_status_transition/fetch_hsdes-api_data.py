@@ -2830,6 +2830,13 @@ def main():
         print("ERROR: No filename provided!")
         return
     
+    # Ask platform name upfront so it can be used in the output filename
+    print("\nAvailable platforms: WCL, PTL-H, NVL-S, NVL-Hx, ARL-S-Ref, ARL-Hx-Ref")
+    platform_name = input("Enter platform name: ").strip()
+    if not platform_name:
+        platform_name = "WCL"  # Default to WCL if empty
+        print(f"No platform entered, defaulting to {platform_name}")
+    
     article_ids = read_article_ids_from_excel(filename)
     if not article_ids:
         print("ERROR: No article IDs found or error reading file!")
@@ -2837,7 +2844,7 @@ def main():
     
     print(f"\nArticle IDs to fetch: {', '.join(article_ids)}")
     
-    default_filename = f"hsdes_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    default_filename = f"{platform_name.lower()}_hsdes_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     output_filename = input(f"Output filename [{default_filename}]: ").strip()
     if not output_filename:
         output_filename = default_filename
@@ -2853,12 +2860,7 @@ def main():
     print("\n" + "="*60)
     create_analysis = input("Do you want to create Bugs Transition Graph? (y/n): ").strip().lower()
     if create_analysis in ['y', 'yes']:
-        # Ask for platform name
-        print("\nAvailable platforms: WCL, PTL-H, NVL-S, NVL-Hx, ARL-S-Ref, ARL-Hx-Ref")
-        platform_name = input("Enter platform name: ").strip()
-        if not platform_name:
-            platform_name = "WCL"  # Default to WCL if empty
-            print(f"No platform entered, defaulting to {platform_name}")
+        print(f"Creating transition analysis for {platform_name}...")
         
         print(f"Creating transition analysis for {platform_name}...")
         
